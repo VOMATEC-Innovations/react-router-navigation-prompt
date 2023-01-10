@@ -188,7 +188,7 @@ var NavigationPrompt = function (_React$Component) {
           action: action,
           nextLocation: nextLocation,
           isActive: true
-        });
+        }, this.props.onShow);
       }
       return !result;
     }
@@ -265,7 +265,8 @@ var NavigationPrompt = function (_React$Component) {
     key: 'onBeforeUnload',
     value: function onBeforeUnload(e) {
       if (!this.when()) return;
-      var msg = 'Do you want to leave this site?\n\nChanges you made may not be saved.';
+      this.props.onShowNative && this.props.onShowNative();
+      var msg = this.props.nativeMessage || 'Do you want to leave this site?\n\nChanges you made may not be saved.';
       e.returnValue = msg;
       return msg;
     }

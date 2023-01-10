@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.10.0] - 2023-01-10
 ### Changed
 - Added nextLocation and action to childData
+- Added callbacks which will be called on become active: onShow() and onShowNative()
+- Added parameter for native message
 
 ## [1.9.6] - 2022-02-13
 ### Fixed

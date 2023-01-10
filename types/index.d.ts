@@ -18,8 +18,11 @@ export interface NavigationPromptProps extends RouteComponentProps<any> {
   allowGoBack?: boolean;
   beforeCancel?: (callback: Function) => void;
   beforeConfirm?: (callback: Function) => void;
+  onShow?: () => void;
+  onShowNative?: () => void;
   renderIfNotActive?: boolean;
   disableNative?: boolean;
+  nativeMessage?: string;
 }
 
 interface NavigationPromptState {

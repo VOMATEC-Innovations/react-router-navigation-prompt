@@ -8,6 +8,8 @@ declare type PropsT = {
   afterConfirm?: Function,
   beforeCancel?: Function,
   beforeConfirm?: Function,
+  onShow?: Function,
+  onShowNative?: Function,
   children: (data: {isActive: bool, action: ?HistoryAction, nextLocation: ?Location, onCancel: Function, onConfirm: Function}) => React$Element<*>,
   match: Match,
   history: RouterHistory,
@@ -16,6 +18,7 @@ declare type PropsT = {
   when: bool | (Location, ?Location, ?HistoryAction) => bool,
   disableNative?: bool,
   allowGoBack?: bool,
+  nativeMessage?: string
 };
 declare type StateT = {
   action: ?HistoryAction,
@@ -108,7 +111,7 @@ class NavigationPrompt extends React.Component<PropsT, StateT> {
         action,
         nextLocation,
         isActive: true
-      });
+      }, this.props.onShow);
     }
     return !result;
   }
@@ -171,7 +174,8 @@ class NavigationPrompt extends React.Component<PropsT, StateT> {
 
   onBeforeUnload(e) {
     if (!this.when()) return;
-    const msg = 'Do you want to leave this site?\n\nChanges you made may not be saved.';
+    this.props.onShowNative && this.props.onShowNative();
+    const msg = this.props.nativeMessage || 'Do you want to leave this site?\n\nChanges you made may not be saved.';
     e.returnValue = msg;
     return msg;
   }
