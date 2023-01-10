@@ -287,6 +287,8 @@ var NavigationPrompt = function (_React$Component) {
         null,
         this.props.children({
           isActive: this.state.isActive,
+          action: this.state.action,
+          nextLocation: this.state.nextLocation,
           onConfirm: this.onConfirm,
           onCancel: this.onCancel
         })

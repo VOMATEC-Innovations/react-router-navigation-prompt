@@ -4,6 +4,8 @@ import { RouteComponentProps, Omit } from 'react-router';
 
 export interface ChildData {
   isActive: boolean;
+  action: H.Action | undefined;
+  nextLocation: H.Location | undefined;
   onCancel: () => void;
   onConfirm: () => void;
 }

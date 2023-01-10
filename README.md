@@ -103,7 +103,7 @@ import Modal from "./your-own-code";
   - allowGoBack: bool (use _goBack_ method instead of _push_ when navigating back -- !! NOTE WELL !! it will _always_ navigate back only 1 item, even when it should navigate back more items.  read more: https://github.com/ZacharyRSmith/react-router-navigation-prompt/pull/30),
   - beforeCancel?: Function,
   - beforeConfirm?: Function,
-  - children: (data: {isActive: bool, onCancel: Function, onConfirm: Function}) => React$Element<\*>,
+  - children: (data: {isActive: bool, action: ?HistoryAction, nextLocation: ?Location, onCancel: Function, onConfirm: Function}) => React$Element<\*>,
   - renderIfNotActive: bool,
   - when: bool | (Location, ?Location, ?HistoryAction) => bool,
   - disableNative: bool,

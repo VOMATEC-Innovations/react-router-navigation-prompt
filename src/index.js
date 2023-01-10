@@ -8,7 +8,7 @@ declare type PropsT = {
   afterConfirm?: Function,
   beforeCancel?: Function,
   beforeConfirm?: Function,
-  children: (data: {isActive: bool, onCancel: Function, onConfirm: Function}) => React$Element<*>,
+  children: (data: {isActive: bool, action: ?HistoryAction, nextLocation: ?Location, onCancel: Function, onConfirm: Function}) => React$Element<*>,
   match: Match,
   history: RouterHistory,
   location: Location,
@@ -190,6 +190,8 @@ class NavigationPrompt extends React.Component<PropsT, StateT> {
       <div>
         {this.props.children({
           isActive: this.state.isActive,
+          action: this.state.action,
+          nextLocation: this.state.nextLocation,
           onConfirm: this.onConfirm,
           onCancel: this.onCancel
         })}
