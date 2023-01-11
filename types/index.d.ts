@@ -8,7 +8,7 @@ export interface ChildData {
   nextLocation: H.Location | undefined;
   onCancel: () => void;
   onConfirm: () => void;
-  onSkip: (nextLocation: H.Location | string, action?: H.Action) => void;
+  onSkip: (nextLocation: H.Location | string | URL, action?: H.Action) => void;
 }
 
 export interface NavigationPromptProps extends RouteComponentProps<any> {
@@ -21,7 +21,7 @@ export interface NavigationPromptProps extends RouteComponentProps<any> {
   beforeCancel?: (callback: Function) => void;
   beforeConfirm?: (callback: Function) => void;
   beforeSkip?: (callback: Function) => void;
-  onShow?: (data: {action: H.Action, nextLocation: H.Location, onCancel: () => void, onConfirm: () => void, onSkip: (nextLocation: H.Location | string, action?: H.Action) => void}) => void;
+  onShow?: (data: {action: H.Action, nextLocation: H.Location, onCancel: () => void, onConfirm: () => void, onSkip: (nextLocation: H.Location | string | URL, action?: H.Action) => void}) => void;
   onShowNative?: () => void;
   renderIfNotActive?: boolean;
   disableNative?: boolean;
@@ -43,7 +43,7 @@ interface NavigationPromptWithRouter extends React.Component<NavigationPromptPro
   navigateTo(nextLocation: H.Location | string, action?: H.Action): void;
   onCancel(): void;
   onConfirm(): void;
-  onSkip(nextLocation: H.Location | string, action?: H.Action): void;
+  onSkip(nextLocation: H.Location | string | URL, action?: H.Action): void;
   onBeforeUnload(e: any): string
   when(nextLocation?: H.Location, action?: H.Action): boolean;
 }

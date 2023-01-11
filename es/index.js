@@ -276,6 +276,21 @@ var NavigationPrompt = function (_React$Component) {
       }
     }
   }, {
+    key: 'navigateToNative',
+    value: function navigateToNative(nextLocation, action) {
+      if (!this.props.disableNative) {
+        window.removeEventListener('beforeunload', this.onBeforeUnload);
+      }
+
+      if (action === 'PUSH') {
+        window.location.assign(nextLocation);
+      } else if (action === 'REPLACE') {
+        window.location.replace(nextLocation);
+      } else {
+        throw new Error('Action is not supported!');
+      }
+    }
+  }, {
     key: 'onSkip',
     value: function onSkip(nextLocation, action) {
       var _this4 = this;
@@ -283,7 +298,13 @@ var NavigationPrompt = function (_React$Component) {
       (this.props.beforeSkip || function (cb) {
         cb();
       })(function () {
-        _this4.navigateTo(nextLocation, action);
+        if (nextLocation instanceof URL) {
+          _this4.navigateToNative(nextLocation.toString(), action);
+        } else if (typeof nextLocation === 'string' && /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/.test(nextLocation)) {
+          _this4.navigateToNative(nextLocation, action);
+        } else {
+          _this4.navigateTo(nextLocation, action);
+        }
       });
     }
   }, {

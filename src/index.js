@@ -10,9 +10,9 @@ declare type PropsT = {
   beforeConfirm?: Function,
   beforeSkip?: Function,
   afterSkip?: Function,
-  onShow?: (data: {action: ?HistoryAction, nextLocation: ?Location, onCancel: Function, onConfirm: Function, onSkip: (nextLocation: Location | string, action?: HistoryAction) => void}) => void,
+  onShow?: (data: {action: ?HistoryAction, nextLocation: ?Location, onCancel: Function, onConfirm: Function, onSkip: (nextLocation: Location | string | URL, action?: HistoryAction) => void}) => void,
   onShowNative?: Function,
-  children: (data: {isActive: bool, action: ?HistoryAction, nextLocation: ?Location, onCancel: Function, onConfirm: Function, onSkip: (nextLocation: Location | string, action?: HistoryAction) => void}) => React$Element<*>,
+  children: (data: {isActive: bool, action: ?HistoryAction, nextLocation: ?Location, onCancel: Function, onConfirm: Function, onSkip: (nextLocation: Location | string | URL, action?: HistoryAction) => void}) => React$Element<*>,
   match: Match,
   history: RouterHistory,
   location: Location,
@@ -190,11 +190,31 @@ class NavigationPrompt extends React.Component<PropsT, StateT> {
     }
   }
 
+  navigateToNative(nextLocation, action) {
+    if (!this.props.disableNative) {
+      window.removeEventListener('beforeunload', this.onBeforeUnload);
+    }
+
+    if (action === 'PUSH') {
+      window.location.assign(nextLocation);
+    } else if (action === 'REPLACE') {
+      window.location.replace(nextLocation);
+    } else {
+      throw new Error('Action is not supported!');
+    }
+  }
+
   onSkip(nextLocation, action) {
     (this.props.beforeSkip || ((cb) => {
       cb();
     }))(() => {
-      this.navigateTo(nextLocation, action)
+      if (nextLocation instanceof URL) {
+        this.navigateToNative(nextLocation.toString(), action);
+      } else if (typeof nextLocation === 'string' && /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/.test(nextLocation)) {
+        this.navigateToNative(nextLocation, action);
+      } else {
+        this.navigateTo(nextLocation, action);
+      }
     });
   }
 
