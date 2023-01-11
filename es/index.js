@@ -141,6 +141,7 @@ var NavigationPrompt = function (_React$Component) {
     _this.onBeforeUnload = _this.onBeforeUnload.bind(_this);
     _this.onCancel = _this.onCancel.bind(_this);
     _this.onConfirm = _this.onConfirm.bind(_this);
+    _this.onSkip = _this.onSkip.bind(_this);
     _this.when = _this.when.bind(_this);
 
     _this.state = _extends({}, initState, { unblock: function unblock() {} /* unblock will be set in componentDidMount */ });
@@ -163,6 +164,8 @@ var NavigationPrompt = function (_React$Component) {
         this.props.afterCancel();
       } else if (this._prevUserAction === 'CONFIRM' && typeof this.props.afterConfirm === 'function') {
         this.props.afterConfirm();
+      } else if (this._prevUserAction === 'SKIP' && typeof this.props.afterSkip === 'function') {
+        this.props.afterSkip();
       }
       this._prevUserAction = '';
     }
@@ -182,20 +185,30 @@ var NavigationPrompt = function (_React$Component) {
   }, {
     key: 'block',
     value: function block(nextLocation, action) {
+      var _this2 = this;
+
       var result = this.when(nextLocation, action);
       if (result) {
         this.setState({
           action: action,
           nextLocation: nextLocation,
           isActive: true
-        }, this.props.onShow);
+        }, function () {
+          return _this2.props.onShow && _this2.props.onShow({
+            action: _this2.state.action,
+            nextLocation: _this2.state.nextLocation,
+            onConfirm: _this2.onConfirm,
+            onCancel: _this2.onCancel,
+            onSkip: _this2.onSkip
+          });
+        });
       }
       return !result;
     }
   }, {
     key: 'navigateToNextLocation',
-    value: function navigateToNextLocation(cb) {
-      var _this2 = this;
+    value: function navigateToNextLocation() {
+      var _this3 = this;
 
       var _state = this.state,
           action = _state.action,
@@ -219,10 +232,10 @@ var NavigationPrompt = function (_React$Component) {
         // then navigateToNextLocation would be triggered again.
         var unlisten = history.listen(function () {
           unlisten();
-          if (_this2._isMounted) {
+          if (_this3._isMounted) {
             // Just in case we unmounted on the route change
-            _this2.setState(_extends({}, initState, {
-              unblock: history.block(_this2.block)
+            _this3.setState(_extends({}, initState, {
+              unblock: history.block(_this3.block)
             }));
           }
         });
@@ -239,26 +252,61 @@ var NavigationPrompt = function (_React$Component) {
       }
     }
   }, {
+    key: 'navigateTo',
+    value: function navigateTo(nextLocation, action) {
+      var method = {
+        'POP': '',
+        'PUSH': 'push',
+        'REPLACE': 'replace'
+      }[action || 'PUSH'];
+      if (!method) throw new Error('Action is not supported!');
+
+      var history = this.props.history;
+
+
+      this.state.unblock();
+      this._prevUserAction = 'SKIP';
+      // $FlowFixMe history.replace()'s type expects LocationShape even though it works with Location.
+      history[method](nextLocation); // could unmount at this point
+      if (this._isMounted) {
+        // Just in case we unmounted on the route change
+        this.setState(_extends({}, initState, {
+          unblock: this.props.history.block(this.block)
+        })); // FIXME?  Does history.listen need to be used instead, for async?
+      }
+    }
+  }, {
+    key: 'onSkip',
+    value: function onSkip(nextLocation, action) {
+      var _this4 = this;
+
+      (this.props.beforeSkip || function (cb) {
+        cb();
+      })(function () {
+        _this4.navigateTo(nextLocation, action);
+      });
+    }
+  }, {
     key: 'onCancel',
     value: function onCancel() {
-      var _this3 = this;
+      var _this5 = this;
 
       (this.props.beforeCancel || function (cb) {
         cb();
       })(function () {
-        _this3._prevUserAction = 'CANCEL';
-        _this3.setState(_extends({}, initState));
+        _this5._prevUserAction = 'CANCEL';
+        _this5.setState(_extends({}, initState));
       });
     }
   }, {
     key: 'onConfirm',
     value: function onConfirm() {
-      var _this4 = this;
+      var _this6 = this;
 
       (this.props.beforeConfirm || function (cb) {
         cb();
       })(function () {
-        _this4.navigateToNextLocation(_this4.props.afterConfirm);
+        _this6.navigateToNextLocation();
       });
     }
   }, {
@@ -266,7 +314,7 @@ var NavigationPrompt = function (_React$Component) {
     value: function onBeforeUnload(e) {
       if (!this.when()) return;
       this.props.onShowNative && this.props.onShowNative();
-      var msg = this.props.nativeMessage || 'Do you want to leave this site?\n\nChanges you made may not be saved.';
+      var msg = 'Do you want to leave this site?\n\nChanges you made may not be saved.';
       e.returnValue = msg;
       return msg;
     }
@@ -291,7 +339,8 @@ var NavigationPrompt = function (_React$Component) {
           action: this.state.action,
           nextLocation: this.state.nextLocation,
           onConfirm: this.onConfirm,
-          onCancel: this.onCancel
+          onCancel: this.onCancel,
+          onSkip: this.onSkip
         })
       );
     }

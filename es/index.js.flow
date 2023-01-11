@@ -8,17 +8,18 @@ declare type PropsT = {
   afterConfirm?: Function,
   beforeCancel?: Function,
   beforeConfirm?: Function,
-  onShow?: Function,
+  beforeSkip?: Function,
+  afterSkip?: Function,
+  onShow?: (data: {action: ?HistoryAction, nextLocation: ?Location, onCancel: Function, onConfirm: Function, onSkip: (nextLocation: Location | string, action?: HistoryAction) => void}) => void,
   onShowNative?: Function,
-  children: (data: {isActive: bool, action: ?HistoryAction, nextLocation: ?Location, onCancel: Function, onConfirm: Function}) => React$Element<*>,
+  children: (data: {isActive: bool, action: ?HistoryAction, nextLocation: ?Location, onCancel: Function, onConfirm: Function, onSkip: (nextLocation: Location | string, action?: HistoryAction) => void}) => React$Element<*>,
   match: Match,
   history: RouterHistory,
   location: Location,
   renderIfNotActive?: bool,
   when: bool | (Location, ?Location, ?HistoryAction) => bool,
   disableNative?: bool,
-  allowGoBack?: bool,
-  nativeMessage?: string
+  allowGoBack?: bool
 };
 declare type StateT = {
   action: ?HistoryAction,
@@ -70,6 +71,7 @@ class NavigationPrompt extends React.Component<PropsT, StateT> {
     (this:Object).onBeforeUnload = this.onBeforeUnload.bind(this);
     (this:Object).onCancel = this.onCancel.bind(this);
     (this:Object).onConfirm = this.onConfirm.bind(this);
+    (this:Object).onSkip = this.onSkip.bind(this);
     (this:Object).when = this.when.bind(this);
 
     this.state = {...initState, unblock: () => {}/* unblock will be set in componentDidMount */};
@@ -88,6 +90,8 @@ class NavigationPrompt extends React.Component<PropsT, StateT> {
       this.props.afterCancel();
     } else if (this._prevUserAction === 'CONFIRM' && typeof this.props.afterConfirm === 'function') {
       this.props.afterConfirm();
+    } else if (this._prevUserAction === 'SKIP' && typeof this.props.afterSkip === 'function') {
+      this.props.afterSkip();
     }
     this._prevUserAction = '';
   }
@@ -111,12 +115,20 @@ class NavigationPrompt extends React.Component<PropsT, StateT> {
         action,
         nextLocation,
         isActive: true
-      }, this.props.onShow);
+      }, () => this.props.onShow &&
+        this.props.onShow({
+          action: this.state.action,
+          nextLocation: this.state.nextLocation,
+          onConfirm: this.onConfirm,
+          onCancel: this.onCancel,
+          onSkip: this.onSkip
+        })
+      );
     }
     return !result;
   }
 
-  navigateToNextLocation(cb) {
+  navigateToNextLocation() {
     let {action, nextLocation} = this.state;
     action = {
       'POP': this.props.allowGoBack ? 'goBack' : 'push',
@@ -155,6 +167,37 @@ class NavigationPrompt extends React.Component<PropsT, StateT> {
     }
   }
 
+  navigateTo(nextLocation, action) {
+    const method = {
+      'POP': '',
+      'PUSH': 'push',
+      'REPLACE': 'replace'
+    }[action || 'PUSH'];
+    if (!method)
+      throw new Error('Action is not supported!');
+
+    const {history} = this.props;
+
+    this.state.unblock();
+    this._prevUserAction = 'SKIP';
+    // $FlowFixMe history.replace()'s type expects LocationShape even though it works with Location.
+    history[method](nextLocation); // could unmount at this point
+    if (this._isMounted) { // Just in case we unmounted on the route change
+      this.setState({
+        ...initState,
+        unblock: this.props.history.block(this.block)
+      }); // FIXME?  Does history.listen need to be used instead, for async?
+    }
+  }
+
+  onSkip(nextLocation, action) {
+    (this.props.beforeSkip || ((cb) => {
+      cb();
+    }))(() => {
+      this.navigateTo(nextLocation, action)
+    });
+  }
+
   onCancel() {
     (this.props.beforeCancel || ((cb) => {
      cb();
@@ -168,14 +211,14 @@ class NavigationPrompt extends React.Component<PropsT, StateT> {
     (this.props.beforeConfirm || ((cb) => {
      cb();
     }))(() => {
-      this.navigateToNextLocation(this.props.afterConfirm);
+      this.navigateToNextLocation();
     });
   }
 
   onBeforeUnload(e) {
     if (!this.when()) return;
     this.props.onShowNative && this.props.onShowNative();
-    const msg = this.props.nativeMessage || 'Do you want to leave this site?\n\nChanges you made may not be saved.';
+    const msg = 'Do you want to leave this site?\n\nChanges you made may not be saved.';
     e.returnValue = msg;
     return msg;
   }
@@ -197,7 +240,8 @@ class NavigationPrompt extends React.Component<PropsT, StateT> {
           action: this.state.action,
           nextLocation: this.state.nextLocation,
           onConfirm: this.onConfirm,
-          onCancel: this.onCancel
+          onCancel: this.onCancel,
+          onSkip: this.onSkip
         })}
       </div>
     );
