@@ -2,6 +2,7 @@ const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
+  mode: 'production',
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'es'),
@@ -9,15 +10,17 @@ module.exports = {
     libraryTarget: 'commonjs2' // THIS IS THE MOST IMPORTANT LINE! :mindblow: I wasted more than 2 days until realize this was the line most important in all this guide.
   },
   plugins: [
-    new CopyPlugin([
-      // copy the main source file to the `es/index.js.flow` to add
-      // a way to consume flow types for the end users
-      {
-        from: 'src/index.js',
-        to: 'index.js.flow',
-        toType: 'file'
-      }
-    ]),
+    new CopyPlugin({
+      patterns: [
+        // copy the main source file to the `es/index.js.flow` to add
+        // a way to consume flow types for the end users
+        {
+          from: 'src/index.js',
+          to: 'index.js.flow',
+          toType: 'file'
+        }
+      ]
+    }),
   ],
   module: {
     rules: [
