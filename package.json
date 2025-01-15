@@ -1,6 +1,6 @@
 {
-  "name": "react-router-navigation-prompt",
-  "version": "1.10.0",
+  "name": "react-router-navigation-prompt-flow",
+  "version": "1.10.3",
   "description": "A replacement component for the react-router `<Prompt/>`. Allows for more flexible dialogs.",
   "scripts": {
     "build": "webpack",
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ZacharyRSmith/react-router-navigation-prompt.git"
+    "url": "git+https://github.com/VOMATEC-Innovations/react-router-navigation-prompt.git"
   },
   "keywords": [
     "confirm",
@@ -26,6 +26,7 @@
     "user"
   ],
   "author": "@ZacharyRSmith",
+  "contributors": ["Fabian Wassenhoven <fabian.wassenhoven@vomatec.de>"],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ZacharyRSmith/react-router-navigation-prompt/issues"
@@ -66,6 +67,7 @@
     "testcafe": "^1.18.3",
     "typescript": "^3.1.1",
     "webpack": "^5.68.0",
+    "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.7.4"
   }
 }
